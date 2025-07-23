@@ -1,0 +1,58 @@
+{
+    "manifest_version": 3,
+    "name": "Teams to Telegram Notifier",
+    "version": "2.4",
+    "description": "Intercepts Teams browser notifications and forwards them to Telegram.",
+    "permissions": [
+        "storage",
+        "alarms",
+        "scripting",
+        "tabs",
+        "notifications",
+        "webNavigation"
+    ],
+    "host_permissions": [
+        "https://teams.microsoft.com/*",
+        "https://teams.microsoft.com.mcas.ms/*"
+    ],
+    "background": {
+        "service_worker": "background.js",
+        "type": "module"
+    },
+    "content_scripts": [
+        {
+            "matches": [
+                "https://teams.microsoft.com/*",
+                "https://teams.microsoft.com.mcas.ms/*"
+            ],
+            "js": [
+                "content_bridge.js"
+            ]
+        }
+    ],
+    "web_accessible_resources": [
+        {
+            "resources": [
+                "main_world_script.js"
+            ],
+            "matches": [
+                "https://teams.microsoft.com/*",
+                "https://teams.microsoft.com.mcas.ms/*"
+            ]
+        }
+    ],
+    "action": {
+        "default_title": "Teams Notifier - Click to see logs",
+        "default_popup": "popup.html",
+        "default_icon": {
+            "16": "icons/icon16.png",
+            "48": "icons/icon48.png",
+            "128": "icons/icon128.png"
+        }
+    },
+    "icons": {
+        "16": "icons/icon16.png",
+        "48": "icons/icon48.png",
+        "128": "icons/icon128.png"
+    }
+}

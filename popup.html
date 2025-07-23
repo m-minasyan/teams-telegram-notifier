@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Event Logs</title>
+    <style>
+        body {
+            width: 400px;
+            font-family: monospace;
+            font-size: 12px;
+            background-color: #2b2b2b;
+            color: #d4d4d4;
+        }
+
+        #log-container {
+            height: 300px;
+            overflow-y: auto;
+            border: 1px solid #4a4a4a;
+            padding: 5px;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            background-color: #1e1e1e;
+            color: #cccccc;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 5px;
+        }
+
+        h3 {
+            color: #e0e0e0;
+        }
+
+        button {
+            cursor: pointer;
+            background-color: #4a4a4a;
+            color: #d4d4d4;
+            border: 1px solid #6a6a6a;
+            padding: 4px 8px;
+            border-radius: 3px;
+        }
+
+        button:hover {
+            background-color: #5a5a5a;
+        }
+
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #2b2b2b;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #555;
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #666;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="header">
+        <h3>Event Logs</h3>
+        <button id="clear-logs">Clear</button>
+    </div>
+    <div id="log-container">Loading logs...</div>
+    <script src="popup.js"></script>
+</body>
+
+</html>
