@@ -54,29 +54,32 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     return true;
 });
 
-function formatAndSendTelegramMessage({ title, body }) {
+async function formatAndSendTelegramMessage({ title, body }) {
     if (!config.botToken || !config.chatId || config.botToken === 'YOUR_TELEGRAM_BOT_TOKEN') {
-        logMessage('ERROR: Telegram credentials not configured.');
+        await logMessage('ERROR: Telegram credentials not configured.');
         return;
     }
 
     const text = `<b>${title}</b>\n${body}`;
-
     const url = `https://api.telegram.org/bot${config.botToken}/sendMessage`;
-    fetch(url, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ chat_id: config.chatId, text, parse_mode: 'HTML' })
-    })
-        .then(res => res.json())
-        .then(data => {
-            if (data.ok) {
-                logMessage('Successfully sent to Telegram.');
-            } else {
-                logMessage(`ERROR: Telegram API - ${data.description}`);
-            }
-        })
-        .catch(error => logMessage(`ERROR: Failed to send message. ${error.message}`));
+
+    try {
+        const response = await fetch(url, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ chat_id: config.chatId, text, parse_mode: 'HTML' })
+        });
+
+        const data = await response.json();
+
+        if (data.ok) {
+            await logMessage('Successfully sent to Telegram.');
+        } else {
+            await logMessage(`ERROR: Telegram API - ${data.description || 'Unknown error'}`);
+        }
+    } catch (error) {
+        await logMessage(`ERROR: Failed to send message. ${error.message}`);
+    }
 }
 
 const KEEP_ALIVE_ALARM = 'teamsKeepAlive';
@@ -87,13 +90,34 @@ chrome.alarms.onAlarm.addListener(async (alarm) => {
         try {
             const tabs = await chrome.tabs.query({ url: TEAMS_HOSTS.map(h => `https://${h}/*`) });
             if (tabs.length > 0) {
-                await chrome.scripting.executeScript({
-                    target: { tabId: tabs[0].id },
-                    func: () => { },
-                });
-                logMessage('Keep-alive ping sent.');
+                for (const tab of tabs) {
+                    await chrome.scripting.executeScript({
+                        target: { tabId: tab.id, allFrames: true },
+                        world: 'MAIN',
+                        func: () => {
+                            const eventInit = {
+                                bubbles: true,
+                                cancelable: true,
+                                view: window,
+                                key: 'Shift',
+                                code: 'ShiftLeft',
+                                keyCode: 16,
+                                which: 16,
+                                shiftKey: true,
+                            };
+                            window.dispatchEvent(new KeyboardEvent('keydown', eventInit));
+                        }
+                    }).catch(err => {
+                        if (!err.message.includes('No tab with id') && !err.message.includes('cannot be scripted')) {
+                            logMessage(`WARN: Keep-alive for tab ${tab.id} failed: ${err.message}`);
+                        }
+                    });
+                }
+                logMessage(`Keep-alive signal sent to ${tabs.length} Teams tab(s).`);
             }
-        } catch (err) { }
+        } catch (err) {
+            logMessage(`ERROR: Keep-alive task failed. ${err.message}`);
+        }
     }
 });
 
